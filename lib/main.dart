@@ -42,57 +42,107 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceDim,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Container(
-            color: Theme.of(context).colorScheme.surface,
-            height: 230,
-          ),
-          Spacer(),
-          Numpad(),
-          Spacer()
-        ],
+        backgroundColor: Theme.of(context).colorScheme.surfaceDim,
+        body: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+          return Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: <Widget>[
+                  Expanded(
+                      child: Container(
+                    decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 1,
+                              blurRadius: 1,
+                              offset: Offset(0, 1))
+                        ]),
+                  )),
+                  SizedBox(height: 10),
+                  Expanded(
+                    child: Row(
+                        children: [
+                          Numpad(constraints: constraints),
+                          SizedBox(width: 20),
+                          ExtraButtons()
+                        ]),
+                  ),
+                ],
+              ));
+        }));
+  }
+}
+
+class Numpad extends StatelessWidget {
+  const Numpad({super.key, required this.constraints});
+
+  final BoxConstraints constraints;
+
+  @override
+  Widget build(BuildContext context) {
+    var numpad = <Widget>[
+      NumpadButton(text: "7"),
+      NumpadButton(text: "8"),
+      NumpadButton(text: "9"),
+      NumpadButton(text: "4"),
+      NumpadButton(text: "5"),
+      NumpadButton(text: "6"),
+      NumpadButton(text: "1"),
+      NumpadButton(text: "2"),
+      NumpadButton(text: "3"),
+      NumpadButton(text: "."),
+      NumpadButton(text: "0"),
+      NumpadButton(text: "∠"),
+    ];
+
+    return SizedBox(
+      width: constraints.maxHeight * 0.86,
+      child: GridView.count(
+        crossAxisCount: 3,
+        childAspectRatio: 2.5,
+        shrinkWrap: true,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        children: numpad,
       ),
     );
   }
 }
 
-class Numpad extends StatelessWidget {
-  const Numpad({super.key});
+class ExtraButtons extends StatelessWidget {
+  const ExtraButtons({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: Column(spacing: 10, children: [
+          Expanded(child: NumpadButton(text: "+")),
+          Expanded(child: NumpadButton(text: "-")),
+          Expanded(child: NumpadButton(text: "i")),
+        ]),
+      ),
+    );
+  }
+}
+
+class NumpadButton extends StatelessWidget {
+  final String text;
+
+  const NumpadButton({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
     final bstyle = TextButton.styleFrom(
-        // padding: EdgeInsets.symmetric(horizontal: 80, vertical: 40),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        fixedSize: Size.fromWidth(180),
-        padding: EdgeInsets.only(top: 40, bottom: 40),
         backgroundColor: Theme.of(context).colorScheme.surface);
     final tstyle = TextStyle(fontSize: 30);
-
-    var numpad = <Widget>[];
-    for (var i = 9; i >= 0; i--) {
-      numpad.add(TextButton(
-          onPressed: () {}, style: bstyle, child: Text("$i", style: tstyle)));
-    }
-    numpad.addAll([
-      TextButton(
-          onPressed: () {}, style: bstyle, child: Text(".", style: tstyle)),
-      TextButton(
-          onPressed: () {}, style: bstyle, child: Text("angle", style: tstyle)),
-    ]);
-
-    return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 10,
-        children: List.generate(4, (i) {
-          return Row(spacing: 10, children: numpad.sublist(i * 3, i * 3 + 3));
-        }));
-    // return TextButton(onPressed: () {}, child: Text("1"));
-    // return Text("1");
+    return TextButton(
+        onPressed: () {}, style: bstyle, child: Text(text, style: tstyle));
   }
 }
 
