@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -43,89 +45,93 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surfaceDim,
-        body: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-          return Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                children: <Widget>[
-                  Expanded(
-                      child: Container(
-                    decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 1,
-                              blurRadius: 1,
-                              offset: Offset(0, 1))
-                        ]),
-                  )),
-                  SizedBox(height: 10),
-                  Expanded(
-                    child: Row(
-                        children: [
-                          Numpad(constraints: constraints),
-                          SizedBox(width: 20),
-                          ExtraButtons()
-                        ]),
-                  ),
-                ],
-              ));
-        }));
+        body: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              spacing: 20,
+              children: <Widget>[
+                Expanded(
+                  child: DataArea(),
+                ),
+                Expanded(
+                  child: UserControls(),
+                ),
+              ],
+            )));
   }
 }
 
-class Numpad extends StatelessWidget {
-  const Numpad({super.key, required this.constraints});
-
-  final BoxConstraints constraints;
+class UserControls extends StatelessWidget {
+  const UserControls({super.key});
 
   @override
   Widget build(BuildContext context) {
-    var numpad = <Widget>[
-      NumpadButton(text: "7"),
-      NumpadButton(text: "8"),
-      NumpadButton(text: "9"),
-      NumpadButton(text: "4"),
-      NumpadButton(text: "5"),
-      NumpadButton(text: "6"),
-      NumpadButton(text: "1"),
-      NumpadButton(text: "2"),
-      NumpadButton(text: "3"),
-      NumpadButton(text: "."),
-      NumpadButton(text: "0"),
-      NumpadButton(text: "∠"),
-    ];
-
-    return SizedBox(
-      width: constraints.maxHeight * 0.86,
-      child: GridView.count(
-        crossAxisCount: 3,
-        childAspectRatio: 2.5,
-        shrinkWrap: true,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        children: numpad,
-      ),
-    );
-  }
-}
-
-class ExtraButtons extends StatelessWidget {
-  const ExtraButtons({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Align(
+    return Row(spacing: 20, children: [
+      Expanded(child: Numpad()),
+      Align(
         alignment: Alignment.topLeft,
         child: Column(spacing: 10, children: [
+          Expanded(child: NumpadButton(text: "frac")),
           Expanded(child: NumpadButton(text: "+")),
           Expanded(child: NumpadButton(text: "-")),
           Expanded(child: NumpadButton(text: "i")),
         ]),
-      ),
+      )
+    ]);
+  }
+}
+
+class Numpad extends StatelessWidget {
+  const Numpad({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    var numpad = <Widget>[
+      Expanded(child: NumpadButton(text: "7")),
+      Expanded(child: NumpadButton(text: "8")),
+      Expanded(child: NumpadButton(text: "9")),
+      Expanded(child: NumpadButton(text: "4")),
+      Expanded(child: NumpadButton(text: "5")),
+      Expanded(child: NumpadButton(text: "6")),
+      Expanded(child: NumpadButton(text: "1")),
+      Expanded(child: NumpadButton(text: "2")),
+      Expanded(child: NumpadButton(text: "3")),
+      Expanded(child: NumpadButton(text: ".")),
+      Expanded(flex: 2, child: NumpadButton(text: "0")),
+      Expanded(child: NumpadButton(text: "∠")),
+    ];
+
+    return Column(
+      spacing: 10,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Row(
+            spacing: 10,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: numpad.sublist(0, 3),
+          ),
+        ),
+        Expanded(
+          child: Row(
+            spacing: 10,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: numpad.sublist(3, 6),
+          ),
+        ),
+        Expanded(
+          child: Row(
+            spacing: 10,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: numpad.sublist(6, 9),
+          ),
+        ),
+        Expanded(
+            child: Row(
+                spacing: 10,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: numpad.sublist(9, 12))),
+      ],
     );
   }
 }
@@ -139,6 +145,7 @@ class NumpadButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final bstyle = TextButton.styleFrom(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        minimumSize: Size.fromWidth(100),
         backgroundColor: Theme.of(context).colorScheme.surface);
     final tstyle = TextStyle(fontSize: 30);
     return TextButton(
@@ -146,90 +153,96 @@ class NumpadButton extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class DataArea extends StatefulWidget {
+  const DataArea({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<DataArea> createState() => _DataArea();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _DataArea extends State<DataArea> {
+  var _varCount = 2;
+  var _eqnCount = 2;
 
-  void _incrementCounter() {
+  void addVariable() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _varCount++;
+    });
+  }
+
+  void addEquation() {
+    setState(() {
+      _eqnCount++;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 1,
+                blurRadius: 1,
+                offset: Offset(0, 1))
+          ]),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+          spacing: 30,
+          children: [
+            Row(
+              spacing: 10,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                    onPressed: addVariable,
+                    style: TextButton.styleFrom(
+                        backgroundColor: Colors.purple.shade200,
+                        foregroundColor: Colors.white),
+                    child: Text("+ Add Variable")),
+                TextButton(
+                    onPressed: addEquation,
+                    style: TextButton.styleFrom(
+                        backgroundColor: Colors.blue.shade200,
+                        foregroundColor: Colors.white),
+                    child: Text("+ Add Equation")),
+                TextButton(
+                    onPressed: () {},
+                    style: TextButton.styleFrom(
+                        backgroundColor: Colors.greenAccent.shade200,
+                        foregroundColor: Colors.white),
+                    child: Text("Solve"))
+              ],
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              // crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Table(
+                  defaultColumnWidth: FixedColumnWidth(100),
+                  children: List.generate(
+                    max(_varCount, _eqnCount),
+                    (index) => TableRow(
+                      children: List.generate(
+                        _varCount,
+                        (index) => Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: TextFormField(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
+
