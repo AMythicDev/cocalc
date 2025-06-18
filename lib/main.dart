@@ -1,5 +1,5 @@
 import 'dart:math';
-
+import 'solver.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -84,6 +84,8 @@ class UserControls extends StatelessWidget {
 class Numpad extends StatelessWidget {
   const Numpad({super.key});
 
+  static const int numpadRows = 4;
+
   @override
   Widget build(BuildContext context) {
     var numpad = <Widget>[
@@ -104,34 +106,15 @@ class Numpad extends StatelessWidget {
     return Column(
       spacing: 10,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: List.generate(numpadRows, (i) =>
         Expanded(
           child: Row(
             spacing: 10,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: numpad.sublist(0, 3),
+            children: numpad.sublist(i*3, i*3+3),
           ),
         ),
-        Expanded(
-          child: Row(
-            spacing: 10,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: numpad.sublist(3, 6),
-          ),
-        ),
-        Expanded(
-          child: Row(
-            spacing: 10,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: numpad.sublist(6, 9),
-          ),
-        ),
-        Expanded(
-            child: Row(
-                spacing: 10,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: numpad.sublist(9, 12))),
-      ],
+      )
     );
   }
 }
@@ -164,16 +147,76 @@ class _DataArea extends State<DataArea> {
   var _varCount = 2;
   var _eqnCount = 2;
 
-  void addVariable() {
+  final _coffControllers = [
+    [TextEditingController(), TextEditingController()],
+    [TextEditingController(), TextEditingController()]
+  ];
+
+  final _constControllers = [TextEditingController(), TextEditingController()];
+
+  void _addVariable() {
     setState(() {
       _varCount++;
+      for (int i = 0; i < _eqnCount; i++) {
+        _coffControllers[i].add(TextEditingController());
+      }
+      if (_varCount == _eqnCount + 1) {
+        _coffControllers
+            .add(List.generate(_varCount, (i) => TextEditingController()));
+        _constControllers.add(TextEditingController());
+        _eqnCount++;
+      }
     });
   }
 
-  void addEquation() {
+  void _addEquation() {
     setState(() {
       _eqnCount++;
+      _coffControllers
+          .add(List.generate(_varCount, (i) => TextEditingController()));
+      _constControllers.add(TextEditingController());
     });
+  }
+
+  void _solve() {
+    for (int i = 0; i < _eqnCount; i++) {
+      for (int j = 0; j < _varCount; j++) {
+        print(_coffControllers[i][j].text);
+      }
+    }
+  }
+
+  void _reset() {
+    setState(() {
+      _varCount = 2;
+      _eqnCount = 2;
+      for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+          _coffControllers[i][j].clear();
+        }
+        _constControllers[i].clear();
+      }
+      for (int i = 0; i < _eqnCount; i++) {
+        for (int j = 2; j < _varCount; j++) {
+          _coffControllers[i][j].dispose();
+        }
+        _coffControllers[i].removeRange(2, _varCount);
+        if (i >= 2) {
+          _constControllers[i].dispose();
+        }
+      }
+      _constControllers.removeRange(2, _eqnCount);
+    });
+  }
+
+  @override
+  void dispose() {
+    for (int i = 0; i < _eqnCount; i++) {
+      for (int j = 0; j < _varCount; j++) {
+        _coffControllers[i][j].dispose();
+      }
+    }
+    super.dispose();
   }
 
   @override
@@ -198,45 +241,66 @@ class _DataArea extends State<DataArea> {
               spacing: 10,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                TextButton.icon(
+                    onPressed: _reset,
+                    icon: Icon(Icons.undo),
+                    style: TextButton.styleFrom(
+                        backgroundColor: Colors.blueGrey.shade200,
+                        iconColor: Colors.white,
+                        foregroundColor: Colors.white),
+                    label: Text("Reset")),
                 TextButton(
-                    onPressed: addVariable,
+                    onPressed: _addVariable,
                     style: TextButton.styleFrom(
                         backgroundColor: Colors.purple.shade200,
                         foregroundColor: Colors.white),
                     child: Text("+ Add Variable")),
                 TextButton(
-                    onPressed: addEquation,
+                    onPressed: _addEquation,
                     style: TextButton.styleFrom(
                         backgroundColor: Colors.blue.shade200,
                         foregroundColor: Colors.white),
                     child: Text("+ Add Equation")),
-                TextButton(
-                    onPressed: () {},
+                TextButton.icon(
+                    onPressed: _solve,
+                    icon: Icon(Icons.lightbulb),
                     style: TextButton.styleFrom(
                         backgroundColor: Colors.greenAccent.shade200,
-                        foregroundColor: Colors.white),
-                    child: Text("Solve"))
+                        foregroundColor: Colors.white,
+                        iconColor: Colors.white),
+                    label: Text("Solve"))
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              // crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 30,
               children: [
                 Table(
                   defaultColumnWidth: FixedColumnWidth(100),
                   children: List.generate(
-                    max(_varCount, _eqnCount),
-                    (index) => TableRow(
+                    _eqnCount,
+                    (i) => TableRow(
                       children: List.generate(
                         _varCount,
-                        (index) => Padding(
+                        (j) => Padding(
                           padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: TextFormField(),
+                          child:
+                              TextFormField(controller: _coffControllers[i][j]),
                         ),
                       ),
                     ),
                   ),
                 ),
+                Text("="),
+                Column(
+                  children: List.generate(
+                    _eqnCount,
+                    (i) => SizedBox(
+                      width: 100,
+                      child: TextFormField(controller: _constControllers[i]),
+                    ),
+                  ),
+                )
               ],
             ),
           ],
@@ -245,4 +309,3 @@ class _DataArea extends State<DataArea> {
     );
   }
 }
-
