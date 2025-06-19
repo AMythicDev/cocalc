@@ -8,6 +8,12 @@ enum TokenType {
   minus,
 }
 
+enum Sign {
+  pos,
+  neg,
+  unset,
+}
+
 class Token {
   late TokenType type;
   late dynamic value;
@@ -33,7 +39,8 @@ Complex parseComplex(String str) {
   // 1. x + iy
   // 2. iy + x
   // where x and y can be doubles and hence are always treated as such.
-  // The position of i can also placed to be a prefix or suffix of the cofficient its associated with.
+  // The position of i can also placed to be a prefix or suffix of the
+  // cofficient its associated with.
 
   str = str.trim();
   if (str.isEmpty) {
@@ -51,38 +58,63 @@ Complex parseComplex(String str) {
   if (tokenList.length > 4) {
     throw "error parsing complex '$str'";
   }
-  print(tokenList);
 
   double? real, imag;
-  bool parsNegNum = false;
+  Sign signNow = Sign.pos;
 
   ptr = 0;
   while (ptr < tokenList.length) {
     if (tokenList[ptr].type == TokenType.numeric) {
-      if (ptr == tokenList.length - 1 ||
-          tokenList[ptr + 1].type == TokenType.plus ||
-          tokenList[ptr + 1].type == TokenType.minus && real == null) {
-        real = parsNegNum ? -1 * tokenList[ptr].value : tokenList[ptr].value;
+      if (real == null &&
+          (ptr == tokenList.length - 1 ||
+              (ptr + 1 < tokenList.length &&
+                      tokenList[ptr + 1].type == TokenType.plus ||
+                  tokenList[ptr + 1].type == TokenType.minus))) {
+        if (signNow == Sign.pos) {
+          real = tokenList[ptr].value;
+        } else if (signNow == Sign.neg) {
+          real = -1 * (tokenList[ptr].value as double);
+        } else {
+          throw "invalid complex input string found '$str'";
+        }
         ptr += 1;
-        parsNegNum = false;
-      } else if (tokenList[ptr + 1].type == TokenType.iota && imag == null) {
-        imag = parsNegNum ? -1 * tokenList[ptr].value : tokenList[ptr].value;
+        signNow = Sign.unset;
+      } else if (imag == null &&
+          ptr + 1 < tokenList.length &&
+          tokenList[ptr + 1].type == TokenType.iota) {
+        if (signNow == Sign.pos) {
+          imag = tokenList[ptr].value;
+        } else if (signNow == Sign.neg) {
+          imag = -1 * (tokenList[ptr].value as double);
+        } else {
+          throw "invalid complex input string found '$str'";
+        }
         ptr += 2;
-        parsNegNum = false;
+        signNow = Sign.unset;
       } else {
         throw "invalid complex input string found '$str'";
       }
     } else if (tokenList[ptr].type == TokenType.minus) {
-      parsNegNum = true;
+      signNow = Sign.neg;
       ptr++;
     } else if (tokenList[ptr].type == TokenType.plus) {
+      signNow = Sign.pos;
       ptr++;
-    } else if (tokenList[ptr].type == TokenType.iota &&
-        tokenList[ptr + 1].type == TokenType.numeric && imag == null) {
-      imag =
-          parsNegNum ? -1 * tokenList[ptr + 1].value : tokenList[ptr + 1].value;
-      ptr += 2;
-      parsNegNum = false;
+    } else if (tokenList[ptr].type == TokenType.iota && imag == null) {
+      if (ptr + 1 < tokenList.length &&
+          tokenList[ptr + 1].type == TokenType.numeric) {
+        imag = tokenList[ptr + 1].value;
+        ptr += 2;
+      } else {
+        imag = 1;
+        ptr += 1;
+      }
+      if (signNow == Sign.neg) {
+        imag = imag != null ? imag *= -1 : null;
+      } else if (signNow != Sign.pos) {
+        throw "invalid complex input string found '$str'";
+      }
+      signNow = Sign.unset;
     } else {
       throw "invalid complex input string found '$str'";
     }
