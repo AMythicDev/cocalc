@@ -1,5 +1,3 @@
-import 'dart:math';
-import 'solver.dart';
 import 'package:flutter/material.dart';
 
 void main() {
